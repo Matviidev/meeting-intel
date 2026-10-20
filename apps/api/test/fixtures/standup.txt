@@ -1,0 +1,11 @@
+Platform standup
+Date: 2026-10-13
+
+[00:00:04] Ana Silva: Morning. Quick one today, the main thing is the Redis migration.
+[00:00:15] Ben Cho: The new cluster is up in staging. Failover worked in both drills we ran yesterday.
+[00:00:41] Ana Silva: Great. Any blockers for production?
+[00:00:48] Ben Cho: Only the connection pool settings in the billing service. They still point at the old host.
+[00:01:10] Ana Silva: Okay, we decided to cut over on Thursday night, low traffic window.
+[00:01:22] Ben Cho: I'll update the billing config and the runbook by Wednesday.
+[00:01:40] Carla Diaz: I can take the dashboard. I will add cache hit rate and eviction panels before the cutover.
+[00:02:05] Ana Silva: Perfect. Let's sync again Friday.

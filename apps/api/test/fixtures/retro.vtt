@@ -1,0 +1,16 @@
+WEBVTT
+
+00:00:03.000 --> 00:00:09.000
+<v Ana Silva>Retro for the Redis cutover. Overall it went fine, about four minutes of elevated latency.
+
+00:00:12.000 --> 00:00:20.000
+<v Ben Cho>The latency came from cold caches in billing. We should have pre-warmed the keys.
+
+00:00:24.000 --> 00:00:31.000
+<v Carla Diaz>The new dashboard caught it right away, the hit rate dropped to forty percent.
+
+00:00:35.000 --> 00:00:44.000
+<v Ana Silva>Agreed, next time we pre-warm. We have agreed to add a warmup job to the cutover checklist.
+
+00:00:47.000 --> 00:00:55.000
+<v Ben Cho>I'll write the warmup script by next Friday.
