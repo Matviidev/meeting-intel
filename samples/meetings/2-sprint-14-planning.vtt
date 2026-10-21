@@ -1,0 +1,71 @@
+WEBVTT
+NOTE Sprint 14 planning, 2026-10-06
+
+00:00:05.000 --> 00:00:14.000
+<v Priya Shah>Morning. Sprint 14 planning. Main topic is checkout. Tom, can you start with the spike results?
+
+00:00:16.000 --> 00:00:41.000
+<v Tom Becker>Sure. Payment Element works well. Apple Pay and Google Pay come basically for free once the domain is verified. The one thing that took longer than expected is 3D Secure. Some European cards trigger a challenge flow and our order service times out after 30 seconds, so the order gets cancelled while the customer is still in the bank's popup.
+
+00:00:44.000 --> 00:00:52.000
+<v Marcus Lee>How often would that happen?
+
+00:00:53.000 --> 00:01:08.000
+<v Tom Becker>Roughly 6 percent of EU payments go through a challenge. So not rare. We need to move order confirmation to the Stripe webhook instead of waiting synchronously.
+
+00:01:10.000 --> 00:01:20.000
+<v Priya Shah>How much does that change the estimate?
+
+00:01:21.000 --> 00:01:35.000
+<v Tom Becker>About three extra days. Honestly I don't think October 17 holds. October 20 is safer, it's a Monday, and we'd have the weekend for a final regression run.
+
+00:01:37.000 --> 00:01:48.000
+<v Marcus Lee>I'd prefer the 20th as well. My test plan draft is done, by the way. The open item is that we don't have 3D Secure test cards for the challenge flow in our staging account yet.
+
+00:01:50.000 --> 00:02:05.000
+<v Priya Shah>Okay. Then we've decided to move the launch to Monday, October 20, still behind the feature flag. I'll tell stakeholders, leadership was expecting the 17th.
+
+00:02:08.000 --> 00:02:20.000
+<v Priya Shah>Next, legal. I talked to them on Thursday. Storing partial guest addresses is fine if we delete them after 30 days and mention it in the privacy policy.
+
+00:02:22.000 --> 00:02:39.000
+<v Tom Becker>Even so, autocomplete is a Google Places contract plus the 30 day cleanup job. With the 3D Secure work, I don't see it fitting in this sprint.
+
+00:02:41.000 --> 00:02:50.000
+<v Lena Ortiz>That's a shame, the hallway tests showed people loved it. Five out of six testers used it right away.
+
+00:02:52.000 --> 00:03:08.000
+<v Priya Shah>Let's be realistic. We agreed to drop address autocomplete from the launch scope and do it as a fast follow in November. Lena, can you keep the design ready?
+
+00:03:09.000 --> 00:03:15.000
+<v Lena Ortiz>Yes. The prototype has it already.
+
+00:03:17.000 --> 00:03:31.000
+<v Lena Ortiz>Other hallway test findings: people missed the order summary on mobile because it was collapsed. I've changed it to show the total and item count at the top. I'll hand off the final designs on Wednesday, October 8.
+
+00:03:33.000 --> 00:03:43.000
+<v Tom Becker>I'll implement the webhook based order confirmation for 3D Secure this sprint, that's my top priority.
+
+00:03:45.000 --> 00:03:56.000
+<v Marcus Lee>I'll get the 3D Secure test cards set up in staging, I need someone with Stripe dashboard admin rights though.
+
+00:03:57.000 --> 00:04:04.000
+<v Tom Becker>I have admin, ping me after this and I'll add you.
+
+00:04:06.000 --> 00:04:20.000
+<v Priya Shah>Last thing, saved cards. Open question from the kickoff. My view: not at launch. Payment Element supports it later with very little work.
+
+00:04:21.000 --> 00:04:28.000
+<v Tom Becker>Agreed, it's not worth the risk for launch.
+
+00:04:30.000 --> 00:04:40.000
+<v Priya Shah>Okay, decision is that saved cards come after launch. I'll update the stakeholders on the new date and scope by end of day.
+
+00:04:42.000 --> 00:04:50.000
+<v Marcus Lee>One risk to flag: if the webhook slips, we're back to cancelled EU orders. We should have a kill switch.
+
+00:04:51.000 --> 00:05:01.000
+<v Tom Becker>The feature flag is the kill switch. If anything goes wrong we flip back to the old checkout.
+
+00:05:03.000 --> 00:05:08.000
+<v Priya Shah>Good. Thanks everyone.

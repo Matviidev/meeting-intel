@@ -1,0 +1,35 @@
+Checkout redesign kickoff
+Date: 2026-09-29
+Attendees: Priya Shah (PM), Tom Becker (Engineering lead), Lena Ortiz (Design), Marcus Lee (QA)
+
+[00:00:08] Priya Shah: Okay, let's get started. Thanks everyone. This is the kickoff for the checkout redesign. The short version: checkout conversion on mobile is 38 percent and desktop is 61. Mobile is where we are bleeding.
+[00:00:31] Tom Becker: Do we know where in the funnel people drop?
+[00:00:36] Priya Shah: Mostly on the address and payment steps. Analytics shows 44 percent of mobile drop-offs happen on the card form. People mistype the card number, get an error after submitting, and leave.
+[00:01:02] Lena Ortiz: That matches the session recordings. The card form is three separate screens on mobile, and the error only shows at the end. I'd love to collapse checkout into a single page with inline validation.
+[00:01:25] Tom Becker: Single page is fine technically. The bigger question is whether we keep our own card form or move to Stripe's Payment Element. Our form is five years old, it doesn't do Apple Pay, and every PCI audit we have to explain it.
+[00:01:52] Marcus Lee: From a QA point of view our own form is the most fragile thing we test. Every browser update breaks the input masking somewhere.
+[00:02:10] Priya Shah: What would Payment Element cost us?
+[00:02:14] Tom Becker: No extra fees on our plan. Effort wise I'd guess two sprints including 3D Secure, but I want to do a spike before committing to that number.
+[00:02:33] Lena Ortiz: Design-wise the Payment Element is themeable enough. I checked the appearance API last week, we can match our fonts and colours.
+[00:02:51] Priya Shah: Okay. So for the record, we decided to go with a single-page checkout and to use Stripe Payment Element instead of maintaining our own card form. Any objections?
+[00:03:05] Tom Becker: None from me.
+[00:03:07] Marcus Lee: Happy with that.
+[00:03:10] Priya Shah: Great. Next, timeline. Leadership wants this before the holiday code freeze, which starts November 10.
+[00:03:24] Tom Becker: If the spike goes well, I think October 17 is realistic for a launch behind a feature flag.
+[00:03:33] Marcus Lee: I need at least a week of regression testing before that, ideally with real test cards for 3D Secure.
+[00:03:44] Priya Shah: Then let's say launch on October 17 behind a feature flag, ramping to 100 percent over the following week. We agreed on that date unless the spike tells us otherwise.
+[00:04:02] Lena Ortiz: What about guest checkout? Right now guests have to type the full address. Address autocomplete would help a lot on mobile.
+[00:04:15] Tom Becker: Autocomplete means a Google Places integration, and storing partial addresses for guests. I'm not sure legal is okay with that.
+[00:04:28] Priya Shah: Good point. I'll check with legal about storing guest addresses and come back by Thursday.
+[00:04:40] Lena Ortiz: I'll put together a clickable prototype of the single-page flow by Friday, October 3, so we can run a few hallway tests.
+[00:04:52] Tom Becker: I'll do the Payment Element spike, including Apple Pay and 3D Secure, and report back by Wednesday next week.
+[00:05:06] Marcus Lee: I'll write the test plan for the new checkout and list which 3D Secure test cards we need. I can have a draft by October 6.
+[00:05:18] Priya Shah: One more thing. Success metric. I propose mobile conversion from 38 to 45 percent within a month of launch.
+[00:05:30] Tom Becker: That's ambitious. Can we also track payment error rate? That's the thing engineering can actually move.
+[00:05:41] Priya Shah: Yes, let's track both. Payment error rate on the card step and mobile conversion.
+[00:05:50] Lena Ortiz: Is the one-click upsell on the confirmation page in scope? Marketing keeps asking.
+[00:05:58] Priya Shah: Not for this project. That stays out of scope, we can revisit in Q1.
+[00:06:06] Marcus Lee: Who owns the feature flag rollout? Last time nobody watched the dashboards after ramping.
+[00:06:14] Tom Becker: I'll own the rollout and the dashboards.
+[00:06:19] Priya Shah: Open question for next time: do we support saved cards for logged-in users at launch, or later? Let's not decide today.
+[00:06:31] Priya Shah: Okay, that's it. Thanks all, see you at sprint planning next Monday.
