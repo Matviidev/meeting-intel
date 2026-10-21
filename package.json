@@ -7,8 +7,12 @@
   },
   "scripts": {
     "dev": "pnpm -r --parallel dev",
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose down",
+    "migrate": "pnpm --filter @meeting-intel/api migrate",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
+    "eval": "pnpm --filter @meeting-intel/api eval",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
     "format": "prettier --write .",

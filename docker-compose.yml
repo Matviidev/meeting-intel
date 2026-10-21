@@ -15,5 +15,25 @@ services:
       timeout: 3s
       retries: 20
 
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgres://quorum:quorum@db:5432/quorum
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      LLM_MODEL: ${LLM_MODEL:-claude-opus-5-5}
+      CORS_ORIGIN: http://localhost:8080
+      LOG_LEVEL: info
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - models:/app/.models
+    ports:
+      - '${API_PORT:-3000}:3000'
+
 volumes:
   pgdata:
+  models:
