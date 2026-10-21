@@ -68,6 +68,7 @@ describe('parseTranscript', () => {
   it('reads WebVTT voice tags and merges consecutive cues from one speaker', () => {
     const vtt = [
       'WEBVTT',
+      'NOTE Release sync, 2026-10-06',
       '',
       '00:00:01.000 --> 00:00:03.000',
       '<v Alice>We should ship Friday.</v>',
@@ -78,6 +79,7 @@ describe('parseTranscript', () => {
       '00:00:06.000 --> 00:00:08.000',
       '<v Bob>Agreed.</v>',
     ].join('\n');
+    expect(parseTranscript(vtt).preamble).toBe('Release sync, 2026-10-06');
     expect(parseTranscript(vtt).utterances).toEqual([
       { index: 0, start: 1, speaker: 'Alice', text: 'We should ship Friday. If QA signs off.' },
       { index: 1, start: 6, speaker: 'Bob', text: 'Agreed.' },

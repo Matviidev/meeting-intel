@@ -103,10 +103,14 @@ function matchLine(line: string): Omit<Utterance, 'index'> | null {
 
 function parseCues(text: string): ParsedTranscript {
   const out: Utterance[] = [];
+  const preamble: string[] = [];
   for (const block of text.split(/\n\s*\n/)) {
     const lines = block.split('\n').map((l) => l.trim());
     const timingAt = lines.findIndex((l) => CUE_TIMING.test(l));
-    if (timingAt < 0) continue;
+    if (timingAt < 0) {
+      if (!out.length) preamble.push(...lines.map(cueHeader).filter(Boolean));
+      continue;
+    }
     const start = parseTimestamp(CUE_TIMING.exec(lines[timingAt]!)![1]!);
     if (start === null) continue;
     const body = lines.slice(timingAt + 1).filter(Boolean);
@@ -129,7 +133,14 @@ function parseCues(text: string): ParsedTranscript {
       .trim();
     if (textBody) out.push({ index: 0, start, speaker, text: textBody });
   }
-  return { preamble: '', utterances: out };
+  return { preamble: preamble.join('\n'), utterances: out };
+}
+
+function cueHeader(line: string): string {
+  return line
+    .replace(/^WEBVTT\b.*$/, '')
+    .replace(/^NOTE\s*/, '')
+    .trim();
 }
 
 function mergeTurns(utterances: Utterance[]): Utterance[] {
