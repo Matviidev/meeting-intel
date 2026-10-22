@@ -105,7 +105,7 @@ describe('readTranscriptFile', () => {
   });
 
   it('normalises line endings and BOM', () => {
-    expect(readTranscriptFile('a.txt', Buffer.from('﻿a\r\nb'))).toBe('a\nb');
+    expect(readTranscriptFile('a.txt', Buffer.from('\uFEFFa\r\nb'))).toBe('a\nb');
   });
 });
 

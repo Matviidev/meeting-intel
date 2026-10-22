@@ -32,9 +32,9 @@ export function readTranscriptFile(filename: string, buffer: Buffer): string {
 
 export function normalizeText(text: string): string {
   return text
-    .replace(/^﻿/, '')
+    .replace(/^\uFEFF/, '')
     .replace(/\r\n?/g, '\n')
-    .replace(/[ \t]+/g, ' ')
+    .replace(/[\u00a0\t]+/g, ' ')
     .replace(/[ ]{2,}/g, ' ')
     .replace(/ +\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
