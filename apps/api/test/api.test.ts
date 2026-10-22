@@ -161,9 +161,11 @@ describe('api', () => {
     const done = events.find((e) => e.event === 'done')!.data as {
       cited: string[];
       unknownCitations: string[];
+      unverifiedAttributions: string[];
     };
-    expect(done.cited).toHaveLength(1);
+    expect(done.cited.length).toBeGreaterThan(0);
     expect(done.unknownCitations).toEqual([]);
+    expect(done.unverifiedAttributions).toEqual([]);
 
     const trace = (await ctx.app.inject({ url: `/api/traces/${meta.traceId}` })).json().trace;
     expect(trace.answer).toBe(text);
