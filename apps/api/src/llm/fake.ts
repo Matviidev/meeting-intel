@@ -31,6 +31,24 @@ function actionItem(u: Utterance) {
   };
 }
 
+function keywords(text: string): Set<string> {
+  return new Set((text.toLowerCase().match(/[a-z0-9]{4,}/g) ?? []).filter((w) => w !== 'question'));
+}
+
+function bestLine(id: string, body: string, words: Set<string>) {
+  let best: { id: string; time: string; speaker: string; text: string; score: number } | null =
+    null;
+  for (const m of body.matchAll(/^\[([\d:]+)\] ([^:\n]+): (.+)$/gm)) {
+    const score = (m[3]!.toLowerCase().match(/[a-z0-9]{4,}/g) ?? []).filter((w) =>
+      words.has(w),
+    ).length;
+    if (!best || score > best.score) {
+      best = { id, time: m[1]!, speaker: m[2]!, text: m[3]!, score };
+    }
+  }
+  return best;
+}
+
 export class FakeLlm implements Llm {
   readonly model = 'fake';
 
@@ -43,6 +61,7 @@ export class FakeLlm implements Llm {
         .trim(),
       occurredOn: /\d{4}-\d{2}-\d{2}/.exec(preamble)?.[0] ?? null,
       summary: utterances
+        .filter((u) => u.text.split(/\s+/).length >= 12)
         .slice(0, 2)
         .map((u) => firstSentence(u.text))
         .join(' '),
@@ -64,16 +83,18 @@ export class FakeLlm implements Llm {
     onDelta: (text: string) => void,
   ): Promise<AnswerResult> {
     const last = request.messages.at(-1)?.content ?? '';
-    const sources = [
-      ...last.matchAll(/<source id="([^"]+)"[^>]*>\n\[([\d:]+)\] ([^:\n]+): ([^\n]+)/g),
-    ].slice(0, 3);
+    const question = last.slice(last.lastIndexOf('Question:'));
+    const sources = [...last.matchAll(/<source id="([^"]+)"[^>]*>\n([\s\S]*?)\n<\/source>/g)]
+      .map(([, id, body]) => bestLine(id!, body!, keywords(question)))
+      .filter((s) => s !== null)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
     const text = sources.length
       ? [
           'Here is what the transcripts say:',
           '',
           ...sources.map(
-            ([, id, time, speaker, line]) =>
-              `- **${speaker}** (${time}): ${firstSentence(line!)} [${id}]`,
+            (s) => `- **${s.speaker}** (${s.time}): ${firstSentence(s.text)} [${s.id}]`,
           ),
         ].join('\n')
       : 'I could not find anything relevant in these meetings.';
