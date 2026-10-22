@@ -159,8 +159,8 @@ export function App() {
   );
 
   return (
-    <div className="grid h-full grid-cols-1 md:grid-cols-[300px_1fr] lg:grid-cols-[300px_1fr_440px]">
-      <aside className="hidden border-r border-line bg-paper md:block">{sidebar}</aside>
+    <div className="grid h-full grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden md:grid-cols-[300px_1fr] lg:grid-cols-[300px_1fr_440px]">
+      <aside className="hidden min-h-0 border-r border-line bg-paper md:block">{sidebar}</aside>
 
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
@@ -247,7 +247,7 @@ export function App() {
         </div>
       </main>
 
-      <aside className="hidden border-l border-line bg-paper lg:block">{inspector}</aside>
+      <aside className="hidden min-h-0 border-l border-line bg-paper lg:block">{inspector}</aside>
 
       {inspectorOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">

@@ -48,9 +48,9 @@ export function MeetingList({
                   <MeetingBadge number={m.number} />
                   <span className="truncate text-sm font-medium">{m.title}</span>
                 </div>
-                <div className="mt-2 flex items-center gap-2 text-[11px] text-muted">
+                <div className="mt-2 flex items-center gap-2 text-[11px] whitespace-nowrap text-muted">
                   <AvatarStack names={m.speakers.map((s) => s.name)} />
-                  <span>{formatDate(m.occurredOn) ?? 'No date'}</span>
+                  <span>{formatDate(m.occurredOn, false) ?? 'No date'}</span>
                   <span aria-hidden>·</span>
                   <span>{formatDuration(m.durationSec)}</span>
                   {m.openActionCount > 0 && (

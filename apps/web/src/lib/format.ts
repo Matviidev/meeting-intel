@@ -11,12 +11,16 @@ export function formatDuration(totalSec: number): string {
   return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes} min`;
 }
 
-export function formatDate(iso: string | null): string | null {
+export function formatDate(iso: string | null, withYear = true): string | null {
   if (!iso) return null;
   const date = new Date(`${iso}T12:00:00`);
   return Number.isNaN(date.getTime())
     ? iso
-    : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    : date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        ...(withYear && { year: 'numeric' }),
+      });
 }
 
 export function initials(name: string): string {
