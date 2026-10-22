@@ -2,12 +2,16 @@ import type { Insights, Utterance } from '../domain/meeting.js';
 import type { AnswerRequest, AnswerResult, Llm, TranscriptInput } from './llm.js';
 
 const DECISION = /\b(we(?:'ve| have)? (?:decided|agreed)|decision is|let's go with|agreed\b)/i;
-const COMMITMENT = /\b(I'll|I will|I can take|action item)\b/i;
+const COMMITMENT = /\b(I'll(?! start\b)|I will|I can take|action item)\b/i;
 const DUE =
   /\b(by|before|on) ((?:next )?(?:monday|tuesday|wednesday|thursday|friday|end of (?:day|week|sprint))|\d{4}-\d{2}-\d{2})/i;
 
 function firstSentence(text: string): string {
   return /^.*?[.!?](?=\s|$)/.exec(text)?.[0] ?? text;
+}
+
+function sentenceMatching(text: string, pattern: RegExp): string {
+  return text.split(/(?<=[.!?])\s+/).find((s) => pattern.test(s)) ?? firstSentence(text);
 }
 
 function asTask(text: string): string {
@@ -45,7 +49,11 @@ export class FakeLlm implements Llm {
       topics: [],
       decisions: utterances
         .filter((u) => DECISION.test(u.text))
-        .map((u) => ({ text: firstSentence(u.text), madeBy: u.speaker, atSec: u.start })),
+        .map((u) => ({
+          text: sentenceMatching(u.text, DECISION),
+          madeBy: u.speaker,
+          atSec: u.start,
+        })),
       actionItems: utterances.filter((u) => COMMITMENT.test(u.text)).map(actionItem),
       openQuestions: [],
     };
