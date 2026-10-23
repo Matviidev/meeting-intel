@@ -53,7 +53,7 @@ export function Composer({
   };
 
   return (
-    <div className="rounded-2xl border border-line bg-surface p-2 shadow-[0_1px_0_var(--line),0_8px_24px_-12px_rgb(0_0_0/0.15)] focus-within:border-accent/60">
+    <div className="rounded-2xl border border-line bg-surface p-2 focus-within:border-accent/60">
       <div className="flex flex-wrap items-center gap-1.5 px-2 pt-1 pb-1.5 text-xs text-muted">
         <span>Asking about</span>
         {pinned.length ? (
@@ -78,9 +78,7 @@ export function Composer({
           ))
         ) : (
           <span className="rounded-md bg-sunken px-1.5 py-0.5 text-ink">
-            {meetings.length
-              ? 'all meetings — or mention “meeting #2”, “the retro”, a date or a person'
-              : 'nothing yet'}
+            {meetings.length ? 'all meetings — or name one, a date or a person' : 'nothing yet'}
           </span>
         )}
       </div>

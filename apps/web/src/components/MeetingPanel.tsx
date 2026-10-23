@@ -51,124 +51,134 @@ export function MeetingPanel({
 }) {
   const { data, isLoading, error } = useMeeting(meetingId);
 
-  if (!meetingId) {
-    return (
-      <div className="px-1 py-10 text-center text-sm text-muted">
-        Select a meeting to see its summary, decisions, action items and full transcript.
-      </div>
-    );
-  }
+  if (!meetingId) return null;
   if (isLoading) return <Spinner className="mx-auto mt-10 text-accent" />;
   if (error || !data) return <ErrorNote>Could not load this meeting.</ErrorNote>;
 
   const { meeting, actionItems } = data;
   const { insights } = meeting;
+  const open = actionItems.filter((a) => a.status === 'open').length;
 
   return (
-    <div className="space-y-6">
-      <header>
-        <div className="flex items-center gap-2 text-xs text-muted">
+    <article className="space-y-8">
+      <header className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
           <MeetingBadge number={meeting.number} />
           <span>{formatDate(meeting.occurredOn) ?? 'No date'}</span>
           <span aria-hidden>·</span>
           <span>{formatDuration(meeting.durationSec)}</span>
+          <span aria-hidden>·</span>
+          <span>{meeting.sourceName}</span>
         </div>
-        <h2 className="mt-2 font-display text-2xl font-semibold leading-tight tracking-tight">
+        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">
           {meeting.title}
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-ink/85">{insights.summary}</p>
-        <Button
-          variant={pinned ? 'outline' : 'primary'}
-          className="mt-3"
-          onClick={() => onAsk(meeting.number)}
-        >
-          {pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
-          {pinned ? 'Stop focusing chat' : 'Ask about this meeting'}
-        </Button>
+        </h1>
+        <p className="max-w-2xl leading-relaxed text-ink/85">{insights.summary}</p>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <Button variant={pinned ? 'outline' : 'primary'} onClick={() => onAsk(meeting.number)}>
+            {pinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
+            {pinned ? 'Stop focusing assistant' : 'Ask about this meeting'}
+          </Button>
+          <dl className="flex gap-6 text-sm">
+            <div>
+              <dt className="text-[11px] text-muted">Decisions</dt>
+              <dd className="font-semibold tabular-nums">{insights.decisions.length}</dd>
+            </div>
+            <div>
+              <dt className="text-[11px] text-muted">Open actions</dt>
+              <dd className="font-semibold tabular-nums">{open}</dd>
+            </div>
+            <div>
+              <dt className="text-[11px] text-muted">Speakers</dt>
+              <dd className="font-semibold tabular-nums">{meeting.speakers.length}</dd>
+            </div>
+          </dl>
+        </div>
+        <div className="max-w-2xl pt-1">
+          <SectionLabel>Talk time</SectionLabel>
+          <TalkTime speakers={meeting.speakers} />
+        </div>
       </header>
 
-      <section>
-        <SectionLabel>Talk time</SectionLabel>
-        <TalkTime speakers={meeting.speakers} />
-      </section>
-
-      {insights.topics.length > 0 && (
-        <section>
-          <SectionLabel>Agenda as discussed</SectionLabel>
-          <ol className="space-y-1 text-sm">
-            {insights.topics.map((t, i) => (
-              <li key={i} className="flex items-baseline gap-2">
-                {t.startSec !== null ? (
-                  <Timestamp
-                    sec={t.startSec}
-                    label={formatTime(t.startSec)}
-                    onClick={() => onSeek(t.startSec!)}
-                  />
-                ) : (
-                  <span className="w-11" />
-                )}
-                <span>{t.title}</span>
-              </li>
-            ))}
-          </ol>
+      <div className="grid gap-4 2xl:grid-cols-2">
+        <section className="rounded-2xl border border-line bg-surface p-4">
+          <SectionLabel>Decisions</SectionLabel>
+          {insights.decisions.length ? (
+            <ul className="space-y-2">
+              {insights.decisions.map((d, i) => (
+                <li
+                  key={i}
+                  className="rounded-lg border-l-2 border-accent bg-accent-soft/60 px-3 py-2"
+                >
+                  <p className="text-sm">{d.text}</p>
+                  <p className="mt-1 flex items-center gap-1 text-[11px] text-muted">
+                    {d.madeBy && <span>{d.madeBy}</span>}
+                    {d.atSec !== null && (
+                      <Timestamp
+                        sec={d.atSec}
+                        label={formatTime(d.atSec)}
+                        onClick={() => onSeek(d.atSec!)}
+                      />
+                    )}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-muted">No decisions recorded.</p>
+          )}
         </section>
-      )}
 
-      <section>
-        <SectionLabel>Decisions</SectionLabel>
-        {insights.decisions.length ? (
-          <ul className="space-y-2">
-            {insights.decisions.map((d, i) => (
-              <li
-                key={i}
-                className="rounded-lg border-l-2 border-accent bg-accent-soft/60 px-3 py-2"
-              >
-                <p className="text-sm">{d.text}</p>
-                <p className="mt-1 flex items-center gap-1 text-[11px] text-muted">
-                  {d.madeBy && <span>{d.madeBy}</span>}
-                  {d.atSec !== null && (
+        <section className="rounded-2xl border border-line bg-surface p-4">
+          <SectionLabel>Action items</SectionLabel>
+          {actionItems.length ? (
+            <ul>
+              {actionItems.map((a) => (
+                <ActionRow key={a.id} item={a} onJump={(item) => onSeek(item.atSec!)} />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-muted">No action items recorded.</p>
+          )}
+        </section>
+
+        {insights.topics.length > 0 && (
+          <section className="rounded-2xl border border-line bg-surface p-4">
+            <SectionLabel>Agenda as discussed</SectionLabel>
+            <ol className="space-y-1 text-sm">
+              {insights.topics.map((t, i) => (
+                <li key={i} className="flex items-baseline gap-2">
+                  {t.startSec !== null ? (
                     <Timestamp
-                      sec={d.atSec}
-                      label={formatTime(d.atSec)}
-                      onClick={() => onSeek(d.atSec!)}
+                      sec={t.startSec}
+                      label={formatTime(t.startSec)}
+                      onClick={() => onSeek(t.startSec!)}
                     />
+                  ) : (
+                    <span className="w-11" />
                   )}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-xs text-muted">No decisions recorded.</p>
+                  <span>{t.title}</span>
+                </li>
+              ))}
+            </ol>
+          </section>
         )}
-      </section>
 
-      <section>
-        <SectionLabel>Action items</SectionLabel>
-        {actionItems.length ? (
-          <ul>
-            {actionItems.map((a) => (
-              <ActionRow key={a.id} item={a} onJump={(item) => onSeek(item.atSec!)} />
-            ))}
-          </ul>
-        ) : (
-          <p className="text-xs text-muted">No action items recorded.</p>
+        {insights.openQuestions.length > 0 && (
+          <section className="rounded-2xl border border-line bg-surface p-4">
+            <SectionLabel>Left open</SectionLabel>
+            <ul className="space-y-1.5 text-sm">
+              {insights.openQuestions.map((q, i) => (
+                <li key={i} className="flex gap-2">
+                  <HelpCircle className="mt-0.5 size-3.5 shrink-0 text-amber" /> {q}
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
-      </section>
+      </div>
 
-      {insights.openQuestions.length > 0 && (
-        <section>
-          <SectionLabel>Left open</SectionLabel>
-          <ul className="space-y-1.5 text-sm">
-            {insights.openQuestions.map((q, i) => (
-              <li key={i} className="flex gap-2">
-                <HelpCircle className="mt-0.5 size-3.5 shrink-0 text-amber" /> {q}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section>
+      <section className="rounded-2xl border border-line bg-surface p-4">
         <SectionLabel
           action={
             <span className="inline-flex items-center gap-1 text-[11px] text-muted">
@@ -180,6 +190,6 @@ export function MeetingPanel({
         </SectionLabel>
         <Transcript utterances={meeting.utterances} focus={focus} onSeek={onSeek} />
       </section>
-    </div>
+    </article>
   );
 }

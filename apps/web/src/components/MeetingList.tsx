@@ -3,7 +3,7 @@ import { CheckSquare, Trash2 } from 'lucide-react';
 import { useAddMeeting, useDeleteMeeting } from '../hooks/queries';
 import { formatDate, formatDuration } from '../lib/format';
 import type { Meeting } from '../lib/types';
-import { AvatarStack, IconButton, MeetingBadge, SectionLabel } from './ui';
+import { AvatarStack, IconButton, SectionLabel } from './ui';
 import { UploadZone } from './UploadZone';
 
 export function MeetingList({
@@ -15,64 +15,68 @@ export function MeetingList({
   meetings: Meeting[];
   loading: boolean;
   selectedId: string | null;
-  onSelect: (meeting: Meeting | null) => void;
+  onSelect: (meeting: Meeting) => void;
 }) {
   const add = useAddMeeting();
   const remove = useDeleteMeeting();
+  const newestFirst = [...meetings].reverse();
 
   return (
-    <section className="space-y-3">
-      <SectionLabel>Meetings</SectionLabel>
+    <section className="space-y-4">
+      <SectionLabel>Timeline</SectionLabel>
       {loading ? (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {[0, 1].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-xl bg-sunken" />
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-sunken" />
           ))}
         </div>
       ) : (
-        <ul className="space-y-2">
-          {meetings.map((m) => (
-            <li key={m.id} className="group relative">
-              <button
-                type="button"
-                onClick={() => onSelect(selectedId === m.id ? null : m)}
-                aria-pressed={selectedId === m.id}
-                className={clsx(
-                  'w-full rounded-xl border p-3 pr-9 text-left transition-colors',
-                  selectedId === m.id
-                    ? 'border-accent/50 bg-accent-soft'
-                    : 'border-line bg-surface hover:border-accent/30',
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <MeetingBadge number={m.number} />
-                  <span className="truncate text-sm font-medium">{m.title}</span>
-                </div>
-                <div className="mt-2 flex items-center gap-2 text-[11px] whitespace-nowrap text-muted">
-                  <AvatarStack names={m.speakers.map((s) => s.name)} />
-                  <span>{formatDate(m.occurredOn, false) ?? 'No date'}</span>
-                  <span aria-hidden>·</span>
-                  <span>{formatDuration(m.durationSec)}</span>
-                  {m.openActionCount > 0 && (
-                    <span className="ml-auto inline-flex items-center gap-1 rounded-md bg-amber-soft px-1.5 py-0.5 text-amber">
-                      <CheckSquare className="size-3" /> {m.openActionCount}
-                    </span>
+        <ol className="relative space-y-1 before:absolute before:top-3 before:bottom-3 before:left-[7px] before:w-px before:bg-line">
+          {newestFirst.map((m) => {
+            const active = selectedId === m.id;
+            return (
+              <li key={m.id} className="group relative pl-6">
+                <span
+                  aria-hidden
+                  className={clsx(
+                    'absolute top-3.5 left-0 size-[15px] rounded-full border-2 bg-paper',
+                    active ? 'border-accent bg-accent' : 'border-line',
                   )}
-                </div>
-              </button>
-              <IconButton
-                label={`Delete meeting #${m.number}`}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                onClick={() => {
-                  if (selectedId === m.id) onSelect(null);
-                  remove.mutate(m.id);
-                }}
-              >
-                <Trash2 className="size-3.5" />
-              </IconButton>
-            </li>
-          ))}
-        </ul>
+                />
+                <button
+                  type="button"
+                  onClick={() => onSelect(m)}
+                  aria-pressed={active}
+                  className={clsx(
+                    'w-full rounded-xl px-3 py-2.5 pr-8 text-left transition-colors',
+                    active ? 'bg-surface shadow-sm ring-1 ring-line' : 'hover:bg-sunken',
+                  )}
+                >
+                  <p className="font-mono text-[10px] tracking-wide text-muted uppercase">
+                    #{m.number} · {formatDate(m.occurredOn, false) ?? 'No date'} ·{' '}
+                    {formatDuration(m.durationSec)}
+                  </p>
+                  <p className="mt-0.5 truncate text-sm font-medium">{m.title}</p>
+                  <div className="mt-1.5 flex items-center gap-2 text-[11px] text-muted">
+                    <AvatarStack names={m.speakers.map((s) => s.name)} />
+                    {m.openActionCount > 0 && (
+                      <span className="ml-auto inline-flex items-center gap-1 text-amber">
+                        <CheckSquare className="size-3" /> {m.openActionCount} open
+                      </span>
+                    )}
+                  </div>
+                </button>
+                <IconButton
+                  label={`Delete meeting #${m.number}`}
+                  className="absolute top-1.5 right-1 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                  onClick={() => remove.mutate(m.id)}
+                >
+                  <Trash2 className="size-3.5" />
+                </IconButton>
+              </li>
+            );
+          })}
+        </ol>
       )}
       <UploadZone
         pending={add.isPending}

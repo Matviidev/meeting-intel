@@ -1,9 +1,45 @@
 import clsx from 'clsx';
-import { AlertTriangle, Check, Copy, FileSearch, ThumbsDown, ThumbsUp } from 'lucide-react';
-import { useState } from 'react';
-import type { ChatMessage } from '../lib/types';
+import {
+  Activity,
+  AlertTriangle,
+  Check,
+  Copy,
+  FileSearch,
+  ThumbsDown,
+  ThumbsUp,
+} from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import type { ChatMessage, Source } from '../lib/types';
 import { Answer } from './Answer';
+import { SourcesPanel } from './SourcesPanel';
+import { TracePanel } from './TracePanel';
 import { IconButton } from './ui';
+
+export type Expanded = 'sources' | 'trace' | null;
+
+function Toggle({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={active}
+      className={clsx(
+        'inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs transition-colors',
+        active ? 'bg-accent-soft text-accent' : 'text-muted hover:bg-sunken hover:text-ink',
+      )}
+    >
+      {children}
+    </button>
+  );
+}
 
 const FLAG_COPY: Record<string, (m: ChatMessage) => string> = {
   possible_prompt_injection: () =>
@@ -30,15 +66,19 @@ export function scopeLabel(message: ChatMessage): string | null {
 
 export function MessageView({
   message,
-  active,
+  expanded,
+  highlight,
   onCite,
-  onShowSources,
+  onToggle,
+  onOpenSource,
   onRate,
 }: {
   message: ChatMessage;
-  active: boolean;
+  expanded: Expanded;
+  highlight: string | null;
   onCite: (label: string) => void;
-  onShowSources: () => void;
+  onToggle: (panel: Expanded) => void;
+  onOpenSource: (source: Source) => void;
   onRate: (value: 1 | -1) => void;
 }) {
   const [copied, setCopied] = useState(false);
@@ -46,7 +86,7 @@ export function MessageView({
   if (message.role === 'user') {
     return (
       <div className="flex justify-end">
-        <p className="max-w-[85%] rounded-2xl rounded-br-md bg-accent px-4 py-2.5 text-sm whitespace-pre-wrap text-accent-ink">
+        <p className="max-w-[90%] rounded-2xl rounded-br-md bg-accent px-3.5 py-2 text-sm whitespace-pre-wrap text-accent-ink">
           {message.content}
         </p>
       </div>
@@ -58,12 +98,7 @@ export function MessageView({
   const streaming = message.status === 'streaming';
 
   return (
-    <article
-      className={clsx(
-        'rounded-2xl border bg-surface px-5 py-4',
-        active ? 'border-accent/40' : 'border-line',
-      )}
-    >
+    <article className="rounded-2xl border border-line bg-surface px-4 py-3.5 text-[14px]">
       {!message.content && streaming ? (
         <p className="text-sm text-muted">
           {message.meta
@@ -94,36 +129,58 @@ export function MessageView({
       )}
 
       {message.meta && !streaming && (
-        <footer className="mt-3 flex items-center gap-1 border-t border-line pt-2">
-          <span className="mr-auto truncate text-xs text-muted">{scopeLabel(message)}</span>
-          <IconButton label="Show sources" onClick={onShowSources}>
-            <FileSearch className="size-4" />
-          </IconButton>
-          <IconButton
-            label="Copy answer"
-            onClick={() => {
-              void navigator.clipboard.writeText(message.content);
-              setCopied(true);
-              setTimeout(() => setCopied(false), 1500);
-            }}
-          >
-            {copied ? <Check className="size-4 text-good" /> : <Copy className="size-4" />}
-          </IconButton>
-          <IconButton
-            label="Helpful"
-            onClick={() => onRate(1)}
-            className={clsx(message.feedback === 1 && 'text-good')}
-          >
-            <ThumbsUp className="size-4" />
-          </IconButton>
-          <IconButton
-            label="Not helpful"
-            onClick={() => onRate(-1)}
-            className={clsx(message.feedback === -1 && 'text-bad')}
-          >
-            <ThumbsDown className="size-4" />
-          </IconButton>
+        <footer className="mt-3 border-t border-line pt-2">
+          <p className="mb-1 truncate text-[11px] text-muted">{scopeLabel(message)}</p>
+          <div className="flex items-center gap-0.5">
+            <Toggle
+              active={expanded === 'sources'}
+              onClick={() => onToggle(expanded === 'sources' ? null : 'sources')}
+            >
+              <FileSearch className="size-3.5" /> {message.meta.sources.length} sources
+            </Toggle>
+            <Toggle
+              active={expanded === 'trace'}
+              onClick={() => onToggle(expanded === 'trace' ? null : 'trace')}
+            >
+              <Activity className="size-3.5" /> Trace
+            </Toggle>
+            <span className="flex-1" />
+            <IconButton
+              label="Copy answer"
+              onClick={() => {
+                void navigator.clipboard.writeText(message.content);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+              }}
+            >
+              {copied ? <Check className="size-4 text-good" /> : <Copy className="size-4" />}
+            </IconButton>
+            <IconButton
+              label="Helpful"
+              onClick={() => onRate(1)}
+              className={clsx(message.feedback === 1 && 'text-good')}
+            >
+              <ThumbsUp className="size-4" />
+            </IconButton>
+            <IconButton
+              label="Not helpful"
+              onClick={() => onRate(-1)}
+              className={clsx(message.feedback === -1 && 'text-bad')}
+            >
+              <ThumbsDown className="size-4" />
+            </IconButton>
+          </div>
         </footer>
+      )}
+
+      {expanded && !streaming && (
+        <div className="mt-2 max-h-[28rem] overflow-y-auto rounded-xl bg-sunken/60 p-2.5">
+          {expanded === 'sources' ? (
+            <SourcesPanel message={message} highlight={highlight} onOpen={onOpenSource} />
+          ) : (
+            <TracePanel message={message} />
+          )}
+        </div>
       )}
     </article>
   );

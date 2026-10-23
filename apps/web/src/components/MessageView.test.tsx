@@ -32,22 +32,24 @@ const message: ChatMessage = {
   },
 };
 
-function renderMessage(onCite = vi.fn()) {
+function renderMessage(onCite = vi.fn(), onToggle = vi.fn()) {
   render(
     <MessageView
       message={message}
-      active={false}
+      expanded={null}
+      highlight={null}
       onCite={onCite}
-      onShowSources={vi.fn()}
+      onToggle={onToggle}
+      onOpenSource={vi.fn()}
       onRate={vi.fn()}
     />,
   );
-  return onCite;
+  return { onCite, onToggle };
 }
 
 describe('MessageView', () => {
   it('renders citations as buttons and reports clicks', () => {
-    const onCite = renderMessage();
+    const { onCite } = renderMessage();
     fireEvent.click(screen.getByRole('button', { name: 'M2.1' }));
     expect(onCite).toHaveBeenCalledWith('M2.1');
     expect(screen.getByRole('button', { name: 'M7.1' })).toHaveAttribute(
@@ -61,5 +63,11 @@ describe('MessageView', () => {
     expect(screen.getByText('Meeting #2 · focus on Priya Shah')).toBeInTheDocument();
     expect(screen.getByText(/cites an excerpt that was not retrieved/)).toBeInTheDocument();
     expect(screen.getByText(/Could not find Priya \(01:50\)/)).toBeInTheDocument();
+  });
+
+  it('toggles inline sources', () => {
+    const { onToggle } = renderMessage();
+    fireEvent.click(screen.getByRole('button', { name: /2 sources/ }));
+    expect(onToggle).toHaveBeenCalledWith('sources');
   });
 });

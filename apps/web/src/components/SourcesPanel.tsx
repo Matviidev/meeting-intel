@@ -69,7 +69,7 @@ export function SourcesPanel({
               if (el) refs.current.set(s.label, el);
             }}
             className={clsx(
-              'rounded-xl border p-3 transition-colors',
+              'rounded-lg border p-2.5 transition-colors',
               highlight === s.label ? 'border-accent bg-accent-soft' : 'border-line bg-surface',
               !cited.has(s.label) && highlight !== s.label && 'opacity-70',
             )}

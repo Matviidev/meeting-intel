@@ -47,17 +47,17 @@ export function ActionBoard({ onJump }: { onJump: (item: ActionItem) => void }) 
   if (error) return <ErrorNote>Could not load action items.</ErrorNote>;
 
   return (
-    <div className="space-y-5">
+    <div className="max-w-3xl space-y-5">
       <div>
-        <h2 className="font-display text-2xl font-semibold leading-tight tracking-tight">
+        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">
           Action items
-        </h2>
+        </h1>
         <p className="mt-1 text-sm text-muted">
           Everything people committed to, across all meetings. Tick items off as they get done — the
           assistant sees the status too.
         </p>
       </div>
-      <div className="flex gap-1 rounded-lg bg-sunken p-1" role="tablist">
+      <div className="flex max-w-sm gap-1 rounded-lg bg-sunken p-1" role="tablist">
         {FILTERS.map((f) => (
           <button
             key={f.id}
@@ -80,7 +80,7 @@ export function ActionBoard({ onJump }: { onJump: (item: ActionItem) => void }) 
         </p>
       ) : (
         groupByOwner(items).map(([owner, group]) => (
-          <section key={owner}>
+          <section key={owner} className="rounded-2xl border border-line bg-surface p-4">
             <SectionLabel>
               {owner} · {group.length}
             </SectionLabel>
