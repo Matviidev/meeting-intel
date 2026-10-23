@@ -46,7 +46,7 @@ export function EmptyState({
       <p className="text-xs font-semibold tracking-[0.14em] text-accent uppercase">
         Meeting intelligence
       </p>
-      <h1 className="mt-3 font-serif text-4xl leading-[1.05] sm:text-5xl">
+      <h1 className="mt-3 font-display text-3xl leading-[1.1] font-semibold tracking-tight sm:text-[2.6rem]">
         Remember every decision, <em className="text-accent">without</em> re-watching the call.
       </h1>
       <p className="mt-4 max-w-lg text-muted">

@@ -28,7 +28,7 @@ function Brand() {
   return (
     <div className="flex items-center gap-2.5">
       <img src="/favicon.svg" alt="" className="size-7" />
-      <span className="font-serif text-2xl leading-none">Quorum</span>
+      <span className="font-display text-xl font-semibold leading-none tracking-tight">Quorum</span>
     </div>
   );
 }

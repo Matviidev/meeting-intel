@@ -49,7 +49,9 @@ export function ActionBoard({ onJump }: { onJump: (item: ActionItem) => void }) 
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-serif text-3xl leading-tight">Action items</h2>
+        <h2 className="font-display text-2xl font-semibold leading-tight tracking-tight">
+          Action items
+        </h2>
         <p className="mt-1 text-sm text-muted">
           Everything people committed to, across all meetings. Tick items off as they get done — the
           assistant sees the status too.

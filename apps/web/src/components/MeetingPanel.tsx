@@ -73,7 +73,9 @@ export function MeetingPanel({
           <span aria-hidden>·</span>
           <span>{formatDuration(meeting.durationSec)}</span>
         </div>
-        <h2 className="mt-2 font-serif text-3xl leading-tight">{meeting.title}</h2>
+        <h2 className="mt-2 font-display text-2xl font-semibold leading-tight tracking-tight">
+          {meeting.title}
+        </h2>
         <p className="mt-2 text-sm leading-relaxed text-ink/85">{insights.summary}</p>
         <Button
           variant={pinned ? 'outline' : 'primary'}
