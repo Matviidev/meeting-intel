@@ -2,8 +2,6 @@
 
 Upload meeting transcripts and ask questions about discussions, decisions and action items. Quorum extracts decisions, action items and open questions from each meeting, and every answer cites the transcript excerpts it used, down to the timestamp.
 
-Screenshots are in `docs/screenshots`.
-
 ## Quick start
 
 You need Docker and an Anthropic API key.
