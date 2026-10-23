@@ -2,8 +2,9 @@ import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { MeetingRow } from '../db/schema.js';
-import { readTranscriptFile } from '../ingest/transcript.js';
+import { UnsupportedFileError, readTranscriptFile } from '../ingest/transcript.js';
 import type { IngestInput } from '../meetings/service.js';
+import { isAudioFile } from '../transcribe/audio.js';
 
 const textBody = z.object({
   text: z.string().min(1),
@@ -17,10 +18,29 @@ async function readInput(req: FastifyRequest): Promise<IngestInput> {
     const file = await req.file();
     if (!file) throw req.server.httpErrors.badRequest('No file uploaded.');
     const buffer = await file.toBuffer();
+    if (isAudioFile(file.filename)) return transcribe(req, file.filename, buffer);
+    const maxMb = req.server.deps.config.MAX_UPLOAD_MB;
+    if (buffer.byteLength > maxMb * 1024 * 1024) {
+      throw req.server.httpErrors.payloadTooLarge(`Max transcript size is ${maxMb} MB.`);
+    }
     return { sourceName: file.filename, text: readTranscriptFile(file.filename, buffer) };
   }
   const body = textBody.parse(req.body);
   return { sourceName: body.sourceName ?? 'Pasted transcript', text: body.text.trim() };
+}
+
+async function transcribe(
+  req: FastifyRequest,
+  filename: string,
+  audio: Buffer,
+): Promise<IngestInput> {
+  const { transcription, metrics } = req.server.deps;
+  if (!transcription) throw new UnsupportedFileError('Audio transcription is turned off.');
+  const end = metrics.transcribeDuration.startTimer();
+  const text = await transcription.toTranscript(filename, audio);
+  const seconds = end();
+  req.log.info({ filename, bytes: audio.byteLength, seconds }, 'audio transcribed');
+  return { sourceName: filename, text };
 }
 
 export function summary(meeting: MeetingRow, openActions = 0) {

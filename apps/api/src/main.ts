@@ -8,6 +8,9 @@ import { LocalEmbedder } from './embeddings/local.js';
 import { AnthropicLlm } from './llm/anthropic.js';
 import { FakeLlm } from './llm/fake.js';
 import type { Llm } from './llm/llm.js';
+import { FakeTranscriber } from './transcribe/fake.js';
+import type { Transcriber } from './transcribe/transcriber.js';
+import { WhisperTranscriber } from './transcribe/whisper.js';
 
 const config = loadConfig();
 const { db, close } = createDb(config.DATABASE_URL);
@@ -28,14 +31,28 @@ const local =
     : null;
 const embedder: Embedder = local ?? new FakeEmbedder();
 
+const whisper =
+  config.TRANSCRIPTION_PROVIDER === 'local'
+    ? new WhisperTranscriber(config.TRANSCRIPTION_MODEL, config.MODELS_CACHE_DIR)
+    : null;
+const transcriber: Transcriber | null =
+  whisper ?? (config.TRANSCRIPTION_PROVIDER === 'fake' ? new FakeTranscriber() : null);
+
 await migrate(db);
-const app = await buildApp({ config, db, llm, embedder });
+const app = await buildApp({ config, db, llm, embedder, transcriber });
 
 if (local) {
   local
     .warmup()
     .then(() => app.log.info({ model: config.EMBEDDINGS_MODEL }, 'embedding model ready'))
     .catch((err: unknown) => app.log.error({ err }, 'embedding model failed to load'));
+}
+
+if (whisper) {
+  whisper
+    .warmup()
+    .then(() => app.log.info({ model: config.TRANSCRIPTION_MODEL }, 'transcription model ready'))
+    .catch((err: unknown) => app.log.error({ err }, 'transcription model failed to load'));
 }
 
 const shutdown = async (signal: string) => {

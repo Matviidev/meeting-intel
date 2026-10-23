@@ -1,4 +1,5 @@
 import type { Insights, Utterance } from '../domain/meeting.js';
+import { assignSpeakers, type Segment } from '../transcribe/transcriber.js';
 import type { AnswerRequest, AnswerResult, Llm, TranscriptInput } from './llm.js';
 
 const DECISION = /\b(we(?:'ve| have)? (?:decided|agreed)|decision is|let's go with|agreed\b)/i;
@@ -76,6 +77,18 @@ export class FakeLlm implements Llm {
       actionItems: utterances.filter((u) => COMMITMENT.test(u.text)).map(actionItem),
       openQuestions: [],
     };
+  }
+
+  async labelSpeakers(segments: Segment[]): Promise<string[]> {
+    const turns = [{ from: 0, speaker: 'Speaker A' }];
+    segments.forEach((s, i) => {
+      const prev = segments[i - 1];
+      if (prev && (s.start - prev.end >= 1.5 || prev.text.trim().endsWith('?'))) {
+        const speaker = turns.at(-1)!.speaker === 'Speaker A' ? 'Speaker B' : 'Speaker A';
+        turns.push({ from: i, speaker });
+      }
+    });
+    return assignSpeakers(segments.length, { turns });
   }
 
   async streamAnswer(

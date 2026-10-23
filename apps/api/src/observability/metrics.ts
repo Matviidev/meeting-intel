@@ -53,6 +53,13 @@ export class Metrics {
     registers: [this.registry],
   });
 
+  readonly transcribeDuration = new Histogram({
+    name: 'transcribe_duration_seconds',
+    help: 'Audio transcription and speaker labelling duration',
+    buckets: [1, 5, 10, 30, 60, 120, 300, 600],
+    registers: [this.registry],
+  });
+
   readonly extractedItems = new Counter({
     name: 'extracted_items_total',
     help: 'Decisions and action items extracted from transcripts',

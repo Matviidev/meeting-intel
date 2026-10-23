@@ -24,6 +24,8 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
       LLM_MODEL: ${LLM_MODEL:-claude-opus-5-5}
+      TRANSCRIPTION_PROVIDER: ${TRANSCRIPTION_PROVIDER:-local}
+      TRANSCRIPTION_MODEL: ${TRANSCRIPTION_MODEL:-Xenova/whisper-base.en}
       CORS_ORIGIN: http://localhost:8080
       LOG_LEVEL: info
     depends_on:

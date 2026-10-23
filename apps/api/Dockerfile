@@ -14,6 +14,7 @@ RUN pnpm --filter @meeting-intel/api build \
 FROM node:22-slim AS runtime
 ENV NODE_ENV=production MODELS_CACHE_DIR=/app/.models
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 COPY --from=build /out/node_modules node_modules
 COPY --from=build /out/package.json package.json
 COPY --from=build /repo/apps/api/dist dist

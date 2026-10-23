@@ -15,7 +15,10 @@ const schema = z.object({
   EMBEDDINGS_PROVIDER: z.enum(['local', 'fake']).default('local'),
   EMBEDDINGS_MODEL: z.string().default('Xenova/bge-small-en-v1.5'),
   MODELS_CACHE_DIR: z.string().default('.models'),
+  TRANSCRIPTION_PROVIDER: z.enum(['local', 'fake', 'off']).default('local'),
+  TRANSCRIPTION_MODEL: z.string().default('Xenova/whisper-base.en'),
   MAX_UPLOAD_MB: z.coerce.number().default(2),
+  MAX_AUDIO_MB: z.coerce.number().default(50),
   MAX_QUESTION_CHARS: z.coerce.number().int().default(2000),
   CONTEXT_CHAR_BUDGET: z.coerce.number().int().default(24000),
 });

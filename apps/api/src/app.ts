@@ -24,6 +24,9 @@ import { chatRoutes } from './routes/chat.js';
 import { healthRoutes } from './routes/health.js';
 import { meetingRoutes } from './routes/meetings.js';
 import { traceRoutes } from './routes/traces.js';
+import { AudioDecodeError } from './transcribe/audio.js';
+import { TranscriptionService } from './transcribe/service.js';
+import { EmptyRecordingError, type Transcriber } from './transcribe/transcriber.js';
 
 export interface AppDeps {
   config: Config;
@@ -33,6 +36,7 @@ export interface AppDeps {
   metrics: Metrics;
   meetings: MeetingService;
   chat: ChatService;
+  transcription: TranscriptionService | null;
 }
 
 declare module 'fastify' {
@@ -46,22 +50,34 @@ export interface BuildAppInput {
   db: Db;
   llm: Llm;
   embedder: Embedder;
+  transcriber?: Transcriber | null;
   metrics?: Metrics;
 }
 
-export function createDeps({ config, db, llm, embedder, metrics }: BuildAppInput): AppDeps {
+export function createDeps({
+  config,
+  db,
+  llm,
+  embedder,
+  transcriber,
+  metrics,
+}: BuildAppInput): AppDeps {
   const m = metrics ?? new Metrics(config.NODE_ENV !== 'test');
   const meetings = new MeetingService(db, llm, embedder);
   const chat = new ChatService(db, meetings, new Retriever(db, embedder), llm, m, {
     maxQuestionChars: config.MAX_QUESTION_CHARS,
     contextCharBudget: config.CONTEXT_CHAR_BUDGET,
   });
-  return { config, db, llm, embedder, metrics: m, meetings, chat };
+  const transcription = transcriber ? new TranscriptionService(transcriber, llm) : null;
+  return { config, db, llm, embedder, metrics: m, meetings, chat, transcription };
 }
 
 export async function buildApp(input: BuildAppInput) {
   const deps = createDeps(input);
   const { config, metrics } = deps;
+  const maxFileMb = deps.transcription
+    ? Math.max(config.MAX_UPLOAD_MB, config.MAX_AUDIO_MB)
+    : config.MAX_UPLOAD_MB;
 
   const app = Fastify({
     logger: loggerOptions(config),
@@ -78,7 +94,7 @@ export async function buildApp(input: BuildAppInput) {
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   });
   await app.register(multipart, {
-    limits: { fileSize: config.MAX_UPLOAD_MB * 1024 * 1024, files: 1 },
+    limits: { fileSize: maxFileMb * 1024 * 1024, files: 1 },
   });
 
   app.addHook('onSend', async (req, reply) => {
@@ -109,6 +125,9 @@ export async function buildApp(input: BuildAppInput) {
     ) {
       return reply.code(422).send({ error: 'invalid_transcript', message: err.message });
     }
+    if (err instanceof AudioDecodeError || err instanceof EmptyRecordingError) {
+      return reply.code(422).send({ error: 'invalid_audio', message: err.message });
+    }
     if (err instanceof QuestionRejectedError) {
       return reply.code(400).send({ error: 'invalid_question', message: err.message });
     }
@@ -125,7 +144,9 @@ export async function buildApp(input: BuildAppInput) {
     if (err.code === 'FST_REQ_FILE_TOO_LARGE' || err.code === 'FST_ERR_CTP_BODY_TOO_LARGE') {
       return reply.code(413).send({
         error: 'file_too_large',
-        message: `Max upload size is ${config.MAX_UPLOAD_MB} MB.`,
+        message: deps.transcription
+          ? `Max upload size is ${config.MAX_UPLOAD_MB} MB for transcripts and ${config.MAX_AUDIO_MB} MB for audio.`
+          : `Max upload size is ${config.MAX_UPLOAD_MB} MB.`,
       });
     }
     const status = err.statusCode ?? 500;

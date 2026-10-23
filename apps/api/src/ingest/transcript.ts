@@ -25,7 +25,9 @@ const INLINE_SPEAKER = new RegExp(String.raw`^(${SPEAKER})\s*:\s*(.*)$`);
 export function readTranscriptFile(filename: string, buffer: Buffer): string {
   const ext = filename.slice(filename.lastIndexOf('.')).toLowerCase();
   if (!TEXT_EXTENSIONS.includes(ext)) {
-    throw new UnsupportedFileError(`Unsupported file type "${ext}". Use TXT, MD, VTT or SRT.`);
+    throw new UnsupportedFileError(
+      `Unsupported file type "${ext}". Use TXT, MD, VTT, SRT or an audio file.`,
+    );
   }
   return normalizeText(buffer.toString('utf8'));
 }

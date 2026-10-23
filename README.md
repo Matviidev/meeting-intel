@@ -1,6 +1,6 @@
 # Meeting intelligence system
 
-Upload meeting transcripts and ask questions about discussions, decisions and action items. Quorum extracts decisions, action items and open questions from each meeting, and every answer cites the transcript excerpts it used, down to the timestamp.
+Upload meeting transcripts or recordings and ask questions about discussions, decisions and action items. Quorum extracts decisions, action items and open questions from each meeting, and every answer cites the transcript excerpts it used, down to the timestamp.
 
 ## Quick start
 
@@ -12,7 +12,7 @@ docker compose --env-file .env up --build
 open http://localhost:8080
 ```
 
-Upload the transcripts in `samples/meetings/` (one project across three meetings, in `.txt`, `.vtt` and `.md`).
+Upload the transcripts in `samples/meetings/` (one project across three meetings, in `.txt`, `.vtt` and `.md`), then the recording in `samples/audio/` for a fourth meeting.
 
 Local development:
 
@@ -26,11 +26,13 @@ pnpm eval                       # retrieval/answer eval over samples/
 
 No API key? Set `LLM_PROVIDER=fake` to run everything with a deterministic stand-in model.
 
-Transcripts need speaker labels and timestamps, e.g. `[00:01:23] Priya: …`, `Priya (01:23): …`, Otter/Zoom exports, WebVTT or SRT.
+Transcripts need speaker labels and timestamps, e.g. `[00:01:23] Priya: …`, `Priya (01:23): …`, Otter/Zoom exports, WebVTT or SRT. Audio (MP3, WAV, M4A, OGG, WebM, FLAC, up to 50 MB) can be uploaded or recorded in the browser; local dev needs `ffmpeg` on the PATH.
 
 ## How it works
 
 **Upload:** parse into turns (`start`, `speaker`, `text`) → compute talk time → Claude extracts notes (summary, decisions, action items, open questions, each with a timestamp) as typed structured output → chunk by speaker turns → embed and store in Postgres.
+
+**Audio:** ffmpeg decodes to 16 kHz mono → Whisper (`whisper-base.en`, local ONNX) returns timestamped chunks → chunks are split into sentences → Claude labels speaker turns from the conversation (names when people introduce or address each other, otherwise `Speaker A`, `Speaker B`) → the result is rendered as a normal `[mm:ss] Speaker: text` transcript and goes through the upload path above.
 
 **Question:** resolve scope (meeting numbers, dates, titles like "the retro", people) → hybrid retrieval (vector + full-text + speaker filter, fused with RRF) → prompt with meeting notes and timestamped excerpts → stream the answer → verify citations and speaker/time attributions → store a trace.
 
@@ -40,6 +42,7 @@ Code layout: `apps/api` (Fastify), `apps/web` (React), `samples/`.
 
 - **LLM: Claude Opus 5.5.** Telling a proposal from a decision, and noticing when a later meeting changes an earlier one, needs reasoning. Extraction runs once per transcript, so its cost is paid once. The model is configurable (`LLM_MODEL`).
 - **Embeddings: `bge-small-en-v1.5`, local (ONNX).** No second API key and data stays local. Swappable behind an `Embedder` interface.
+- **Transcription: local Whisper, speakers inferred by Claude.** Whisper runs in the same ONNX runtime as the embeddings, so no extra service or key. It has no diarization, so speaker labels come from the conversation itself. That works for named, turn-taking meetings and is weaker for crosstalk or similar voices; a diarization model (pyannote) or a hosted API with diarization is the production answer. The model is configurable (`TRANSCRIPTION_MODEL`, e.g. `whisper-small.en` for accuracy).
 - **Vector DB: Postgres + pgvector.** Data is small and relational; one database gives vectors, full-text search, speaker array filters and transactions. Tests run on PGlite (real Postgres in WASM).
 - **Orchestration: plain TypeScript, no framework.** Five explicit steps are easier to read and test than a framework abstraction.
 - **Chunking: by speaker turns,** up to ~1,000 characters, never splitting a turn, with one short turn of overlap. Each chunk keeps its time range and speakers, so citations map to a moment in the transcript.
@@ -62,6 +65,6 @@ Code layout: `apps/api` (Fastify), `apps/web` (React), `samples/`.
 - Auth, organisations and row-level security in Postgres.
 - Async ingestion: S3 upload → queue → workers for parse/extract/embed, with retries.
 - API and workers on ECS Fargate / Cloud Run, web on S3 + CloudFront, Aurora Postgres with pgvector.
-- Hosted embeddings, voice transcription with diarization, Zoom/Meet/Teams integrations.
+- Hosted embeddings, transcription with acoustic diarization on a worker queue, Zoom/Meet/Teams integrations.
 - Encryption, retention policies, audit logs; OpenTelemetry tracing and alerts on latency, errors and guardrail flags.
 - IaC (Terraform/CDK), image push and migrations in CI/CD, the eval as a gate for prompt or model changes.

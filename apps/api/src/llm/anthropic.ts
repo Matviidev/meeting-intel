@@ -3,6 +3,7 @@ import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { insightsSchema, type Insights } from '../domain/meeting.js';
 import { formatTime } from '../ingest/time.js';
 import { renderUtterance } from '../ingest/transcript.js';
+import { assignSpeakers, speakerTurnsSchema, type Segment } from '../transcribe/transcriber.js';
 import {
   ExtractionError,
   type AnswerRequest,
@@ -10,7 +11,7 @@ import {
   type Llm,
   type TranscriptInput,
 } from './llm.js';
-import { EXTRACTION_PROMPT } from './prompts.js';
+import { EXTRACTION_PROMPT, SPEAKER_PROMPT } from './prompts.js';
 
 type Effort = 'low' | 'medium' | 'high';
 
@@ -51,6 +52,26 @@ export class AnthropicLlm implements Llm {
       throw new ExtractionError(`Could not extract insights (stop_reason=${response.stop_reason})`);
     }
     return response.parsed_output;
+  }
+
+  async labelSpeakers(segments: Segment[]): Promise<string[]> {
+    const lines = segments.map((s, i) => `${i} [${formatTime(s.start)}] ${s.text}`).join('\n');
+    const response = await this.client.beta.messages.parse({
+      model: this.model,
+      max_tokens: 16000,
+      betas: [FALLBACK_BETA],
+      fallbacks: 'default',
+      output_config: {
+        effort: this.options.extractionEffort,
+        format: betaZodOutputFormat(speakerTurnsSchema),
+      },
+      system: SPEAKER_PROMPT,
+      messages: [{ role: 'user', content: `<segments>\n${lines}\n</segments>` }],
+    });
+    if (response.stop_reason === 'refusal' || !response.parsed_output) {
+      throw new ExtractionError(`Could not label speakers (stop_reason=${response.stop_reason})`);
+    }
+    return assignSpeakers(segments.length, response.parsed_output);
   }
 
   async streamAnswer(

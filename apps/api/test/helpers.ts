@@ -9,6 +9,8 @@ import * as schema from '../src/db/schema.js';
 import { FakeEmbedder } from '../src/embeddings/fake.js';
 import { FakeLlm } from '../src/llm/fake.js';
 import type { Llm } from '../src/llm/llm.js';
+import { FakeTranscriber } from '../src/transcribe/fake.js';
+import type { Transcriber } from '../src/transcribe/transcriber.js';
 
 export async function createTestDb(): Promise<{ db: Db; close: () => Promise<void> }> {
   const client = new PGlite({ extensions: { vector } });
@@ -17,14 +19,17 @@ export async function createTestDb(): Promise<{ db: Db; close: () => Promise<voi
   return { db, close: () => client.close() };
 }
 
-export async function createTestApp(llm: Llm = new FakeLlm()) {
+export async function createTestApp(
+  llm: Llm = new FakeLlm(),
+  transcriber: Transcriber | null = new FakeTranscriber(),
+) {
   const { db, close } = await createTestDb();
   const config = loadConfig({
     NODE_ENV: 'test',
     LLM_PROVIDER: 'fake',
     EMBEDDINGS_PROVIDER: 'fake',
   });
-  const app = await buildApp({ config, db, llm, embedder: new FakeEmbedder() });
+  const app = await buildApp({ config, db, llm, embedder: new FakeEmbedder(), transcriber });
   return {
     app,
     db,

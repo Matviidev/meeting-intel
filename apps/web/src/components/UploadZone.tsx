@@ -1,11 +1,19 @@
 import clsx from 'clsx';
-import { FileAudio2 } from 'lucide-react';
+import { FileAudio2, Mic, Square, X } from 'lucide-react';
 import { useEffect, useRef, useState, type DragEvent } from 'react';
+import { canRecord, useRecorder } from '../hooks/useRecorder';
+import { ACCEPT, isAudio } from '../lib/files';
+import { formatTime } from '../lib/format';
 import { Button, ErrorNote, Spinner } from './ui';
 
-const ACCEPT = '.txt,.md,.vtt,.srt';
-const STEPS = [
+const TEXT_STEPS = [
   'Reading speakers and timestamps…',
+  'Extracting decisions and action items…',
+  'Indexing the transcript for search…',
+];
+const AUDIO_STEPS = [
+  'Transcribing the recording…',
+  'Working out who is speaking…',
   'Extracting decisions and action items…',
   'Indexing the transcript for search…',
 ];
@@ -22,20 +30,31 @@ export function UploadZone({
   const [mode, setMode] = useState<'file' | 'paste'>('file');
   const [text, setText] = useState('');
   const [dragging, setDragging] = useState(false);
+  const [audio, setAudio] = useState(false);
   const [step, setStep] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const steps = audio ? AUDIO_STEPS : TEXT_STEPS;
+
+  const submit = (input: File | string) => {
+    setAudio(isAudio(input));
+    onSubmit(input);
+  };
+  const recorder = useRecorder(submit);
 
   useEffect(() => {
     if (!pending) return setStep(0);
-    const timer = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 3000);
+    const timer = setInterval(
+      () => setStep((s) => Math.min(s + 1, steps.length - 1)),
+      audio ? 8000 : 3000,
+    );
     return () => clearInterval(timer);
-  }, [pending]);
+  }, [pending, audio, steps.length]);
 
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) onSubmit(file);
+    if (file) submit(file);
   };
 
   if (pending) {
@@ -45,7 +64,32 @@ export function UploadZone({
         aria-live="polite"
       >
         <Spinner className="text-accent" />
-        <span>{STEPS[step]}</span>
+        <span>{steps[step]}</span>
+      </div>
+    );
+  }
+
+  if (recorder.recording) {
+    return (
+      <div className="rounded-xl border border-line bg-surface px-4 py-5 text-center">
+        <p
+          className="flex items-center justify-center gap-2 text-sm font-medium"
+          aria-live="polite"
+        >
+          <span className="size-2.5 animate-pulse rounded-full bg-bad" aria-hidden />
+          Recording <span className="tabular-nums">{formatTime(recorder.elapsed)}</span>
+        </p>
+        <p className="mt-0.5 text-xs text-muted">Speakers are inferred from the conversation</p>
+        <div className="mt-3 flex justify-center gap-2">
+          <Button variant="primary" onClick={recorder.finish}>
+            <Square className="size-3.5" aria-hidden />
+            Stop and analyse
+          </Button>
+          <Button variant="ghost" onClick={recorder.cancel}>
+            <X className="size-3.5" aria-hidden />
+            Discard
+          </Button>
+        </div>
       </div>
     );
   }
@@ -66,12 +110,20 @@ export function UploadZone({
           )}
         >
           <FileAudio2 className="mx-auto mb-2 size-5 text-accent" aria-hidden />
-          <p className="text-sm font-medium">Add a transcript</p>
-          <p className="mt-0.5 text-xs text-muted">TXT, MD, VTT or SRT with speakers and times</p>
-          <div className="mt-3 flex justify-center gap-2">
+          <p className="text-sm font-medium">Add a meeting</p>
+          <p className="mt-0.5 text-xs text-muted">
+            Transcript (TXT, MD, VTT, SRT) or audio (MP3, WAV, M4A, WebM)
+          </p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
             <Button variant="primary" onClick={() => inputRef.current?.click()}>
               Choose file
             </Button>
+            {canRecord && (
+              <Button onClick={() => void recorder.start()}>
+                <Mic className="size-3.5" aria-hidden />
+                Record
+              </Button>
+            )}
             <Button variant="ghost" onClick={() => setMode('paste')}>
               Paste text
             </Button>
@@ -81,10 +133,10 @@ export function UploadZone({
             type="file"
             accept={ACCEPT}
             className="hidden"
-            aria-label="Transcript file"
+            aria-label="Transcript or audio file"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) onSubmit(file);
+              if (file) submit(file);
               e.target.value = '';
             }}
           />
@@ -107,7 +159,7 @@ export function UploadZone({
               variant="primary"
               disabled={text.trim().length < 50}
               onClick={() => {
-                onSubmit(text);
+                submit(text);
                 setText('');
                 setMode('file');
               }}
@@ -117,7 +169,7 @@ export function UploadZone({
           </div>
         </div>
       )}
-      {error && <ErrorNote>{error}</ErrorNote>}
+      {(recorder.error ?? error) && <ErrorNote>{recorder.error ?? error}</ErrorNote>}
     </div>
   );
 }
