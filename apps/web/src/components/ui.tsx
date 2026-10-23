@@ -82,7 +82,7 @@ export function Avatar({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md'
         size === 'sm' ? 'size-5 text-[9px]' : 'size-7 text-[11px]',
       )}
     >
-      {initials(name)}
+      {size === 'sm' ? initials(name).slice(0, 1) : initials(name)}
     </span>
   );
 }
