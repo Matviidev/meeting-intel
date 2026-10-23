@@ -65,4 +65,3 @@ Code layout: `apps/api` (Fastify), `apps/web` (React), `samples/`.
 - Hosted embeddings, voice transcription with diarization, Zoom/Meet/Teams integrations.
 - Encryption, retention policies, audit logs; OpenTelemetry tracing and alerts on latency, errors and guardrail flags.
 - IaC (Terraform/CDK), image push and migrations in CI/CD, the eval as a gate for prompt or model changes.
-
