@@ -15,7 +15,7 @@ function ExcerptLines({ content }: { content: string }) {
         if (!m) return <p key={i}>{line}</p>;
         return (
           <p key={i}>
-            <span className="mr-1.5 font-mono text-[10px] text-muted">{m[1]}</span>
+            <span className="mr-1.5 tabular-nums text-[10px] text-muted">{m[1]}</span>
             <span className="mr-1 font-semibold" style={{ color: speakerColor(m[2]!) }}>
               {m[2]}
             </span>
@@ -75,7 +75,7 @@ export function SourcesPanel({
             )}
           >
             <div className="mb-2 flex items-center gap-2 text-xs">
-              <span className="rounded bg-accent px-1.5 py-0.5 font-mono text-[10px] font-semibold text-accent-ink">
+              <span className="rounded bg-accent px-1.5 py-0.5 tabular-nums text-[10px] font-semibold text-accent-ink">
                 {s.label}
               </span>
               <span className="truncate font-medium">
@@ -88,7 +88,7 @@ export function SourcesPanel({
             </div>
             <div className="mt-2 flex items-center gap-2 border-t border-line pt-2 text-[11px] text-muted">
               <AvatarStack names={s.speakers} />
-              <span className="font-mono">
+              <span className="tabular-nums">
                 {formatTime(s.startSec)}–{formatTime(s.endSec)}
               </span>
               <button

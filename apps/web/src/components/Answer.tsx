@@ -42,8 +42,8 @@ export function Answer({
                 }
                 className={
                   valid
-                    ? 'mx-0.5 inline-flex -translate-y-px items-center rounded bg-accent-soft px-1 font-mono text-[10px] font-semibold text-accent hover:bg-accent hover:text-accent-ink'
-                    : 'mx-0.5 inline-flex -translate-y-px items-center rounded bg-bad-soft px-1 font-mono text-[10px] font-semibold text-bad line-through'
+                    ? 'mx-0.5 inline-flex -translate-y-px items-center rounded bg-accent-soft px-1 tabular-nums text-[10px] font-semibold text-accent hover:bg-accent hover:text-accent-ink'
+                    : 'mx-0.5 inline-flex -translate-y-px items-center rounded bg-bad-soft px-1 tabular-nums text-[10px] font-semibold text-bad line-through'
                 }
               >
                 {label}

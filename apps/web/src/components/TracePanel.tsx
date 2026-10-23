@@ -6,7 +6,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-sunken px-3 py-2">
       <p className="text-[10px] tracking-wide text-muted uppercase">{label}</p>
-      <p className="font-mono text-sm tabular-nums">{value}</p>
+      <p className="tabular-nums text-sm">{value}</p>
     </div>
   );
 }
@@ -41,7 +41,7 @@ export function TracePanel({ message }: { message: ChatMessage | undefined }) {
       </div>
       <div>
         <SectionLabel>Model & scope</SectionLabel>
-        <p className="font-mono text-xs">{data.model}</p>
+        <p className="tabular-nums text-xs">{data.model}</p>
         <p className="mt-1 text-xs text-muted">
           {data.scope.length
             ? `Meetings ${data.scope.map((n) => `#${n}`).join(', ')}`
@@ -57,7 +57,7 @@ export function TracePanel({ message }: { message: ChatMessage | undefined }) {
             {data.flags.map((f) => (
               <li
                 key={f}
-                className="rounded-md bg-amber-soft px-2 py-0.5 font-mono text-[11px] text-amber"
+                className="rounded-md bg-amber-soft px-2 py-0.5 tabular-nums text-[11px] text-amber"
               >
                 {f}
               </li>
@@ -86,7 +86,7 @@ export function TracePanel({ message }: { message: ChatMessage | undefined }) {
               <th className="py-1 text-right font-medium">Score</th>
             </tr>
           </thead>
-          <tbody className="font-mono tabular-nums">
+          <tbody className="tabular-nums">
             {data.retrieved.map((r) => (
               <tr key={r.label} className="border-t border-line">
                 <td className="py-1">{r.label}</td>

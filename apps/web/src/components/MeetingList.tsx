@@ -52,7 +52,7 @@ export function MeetingList({
                     active ? 'bg-surface shadow-sm ring-1 ring-line' : 'hover:bg-sunken',
                   )}
                 >
-                  <p className="font-mono text-[10px] tracking-wide text-muted uppercase">
+                  <p className="tabular-nums text-[10px] tracking-wide text-muted uppercase">
                     #{m.number} · {formatDate(m.occurredOn, false) ?? 'No date'} ·{' '}
                     {formatDuration(m.durationSec)}
                   </p>

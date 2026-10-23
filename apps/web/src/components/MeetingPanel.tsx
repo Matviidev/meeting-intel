@@ -26,9 +26,7 @@ function TalkTime({ speakers }: { speakers: SpeakerStat[] }) {
               style={{ backgroundColor: speakerColor(s.name) }}
             />
             <span className="truncate">{s.name}</span>
-            <span className="ml-auto font-mono text-muted tabular-nums">
-              {Math.round(s.share * 100)}%
-            </span>
+            <span className="ml-auto tabular-nums text-muted">{Math.round(s.share * 100)}%</span>
           </li>
         ))}
       </ul>
@@ -70,7 +68,7 @@ export function MeetingPanel({
           <span aria-hidden>·</span>
           <span>{meeting.sourceName}</span>
         </div>
-        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">
+        <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">
           {meeting.title}
         </h1>
         <p className="max-w-2xl leading-relaxed text-ink/85">{insights.summary}</p>

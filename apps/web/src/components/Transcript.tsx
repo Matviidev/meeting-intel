@@ -72,7 +72,7 @@ export function Transcript({
             <button
               type="button"
               onClick={() => onSeek(u.start)}
-              className="self-start pt-0.5 text-left font-mono text-[11px] text-muted tabular-nums hover:text-accent"
+              className="self-start pt-0.5 text-left tabular-nums text-[11px] text-muted hover:text-accent"
             >
               {formatTime(u.start)}
             </button>

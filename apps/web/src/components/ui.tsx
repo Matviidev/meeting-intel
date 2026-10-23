@@ -63,7 +63,7 @@ export function MeetingBadge({ number, className }: { number: number; className?
   return (
     <span
       className={clsx(
-        'inline-flex h-5 min-w-7 items-center justify-center rounded-md bg-sunken px-1.5 font-mono text-[11px] font-semibold text-ink',
+        'inline-flex h-5 min-w-7 items-center justify-center rounded-md bg-sunken px-1.5 tabular-nums text-[11px] font-semibold text-ink',
         className,
       )}
     >
@@ -116,7 +116,7 @@ export function Timestamp({
       type="button"
       onClick={onClick}
       disabled={!onClick}
-      className="rounded px-1 font-mono text-[11px] text-accent tabular-nums hover:bg-accent-soft disabled:pointer-events-none disabled:text-muted"
+      className="rounded px-1 tabular-nums text-[11px] text-accent hover:bg-accent-soft disabled:pointer-events-none disabled:text-muted"
       aria-label={`Jump to ${label}`}
       data-sec={sec}
     >

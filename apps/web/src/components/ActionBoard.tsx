@@ -49,7 +49,7 @@ export function ActionBoard({ onJump }: { onJump: (item: ActionItem) => void }) 
   return (
     <div className="max-w-3xl space-y-5">
       <div>
-        <h1 className="font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">
+        <h1 className="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">
           Action items
         </h1>
         <p className="mt-1 text-sm text-muted">
@@ -70,7 +70,7 @@ export function ActionBoard({ onJump }: { onJump: (item: ActionItem) => void }) 
               filter === f.id ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink',
             )}
           >
-            {f.label} <span className="font-mono text-muted">{counts[f.id]}</span>
+            {f.label} <span className="tabular-nums text-muted">{counts[f.id]}</span>
           </button>
         ))}
       </div>

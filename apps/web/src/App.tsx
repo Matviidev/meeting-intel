@@ -18,7 +18,7 @@ function Brand() {
   return (
     <div className="flex items-center gap-2.5">
       <img src="/favicon.svg" alt="" className="size-7" />
-      <span className="font-display text-xl leading-none font-semibold tracking-tight">Quorum</span>
+      <span className="text-xl leading-none font-semibold tracking-tight">Quorum</span>
     </div>
   );
 }
@@ -167,12 +167,12 @@ export function App() {
         <Brand />
         <nav className="ml-2 hidden gap-1 rounded-lg bg-sunken p-1 sm:flex">
           <NavTab active={view === 'meeting'} onClick={() => setView('meeting')}>
-            Meetings <span className="font-mono text-xs text-muted">{meetings.length}</span>
+            Meetings <span className="tabular-nums text-xs text-muted">{meetings.length}</span>
           </NavTab>
           <NavTab active={view === 'actions'} onClick={() => setView('actions')}>
             Action items
             {openActions > 0 && (
-              <span className="rounded bg-amber-soft px-1 font-mono text-xs text-amber">
+              <span className="rounded bg-amber-soft px-1 tabular-nums text-xs text-amber">
                 {openActions}
               </span>
             )}

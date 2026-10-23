@@ -97,7 +97,7 @@ export function UploadZone({
             placeholder={'[00:00:05] Priya: Morning all…\n[00:00:12] Tom: …'}
             rows={8}
             autoFocus
-            className="w-full resize-y rounded-xl border border-line bg-surface px-3 py-2 font-mono text-xs outline-none focus:border-accent"
+            className="w-full resize-y rounded-xl border border-line bg-surface px-3 py-2 tabular-nums text-xs outline-none focus:border-accent"
           />
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setMode('file')}>
