@@ -1,4 +1,4 @@
-# Quorum — meeting intelligence
+# Meeting intelligence system
 
 Upload meeting transcripts and ask questions about discussions, decisions and action items. Quorum extracts decisions, action items and open questions from each meeting, and every answer cites the transcript excerpts it used, down to the timestamp.
 
@@ -66,20 +66,3 @@ Code layout: `apps/api` (Fastify), `apps/web` (React), `samples/`.
 - Encryption, retention policies, audit logs; OpenTelemetry tracing and alerts on latency, errors and guardrail flags.
 - IaC (Terraform/CDK), image push and migrations in CI/CD, the eval as a gate for prompt or model changes.
 
-## Engineering standards
-
-Followed: strict TypeScript, Zod at every boundary, ESLint + Prettier and tests in CI, fakes behind interfaces instead of mocks, multi-stage Docker builds with a non-root user, conventional commits.
-
-Skipped: auth, async ingestion, browser E2E tests.
-
-## How I used AI tools
-
-<!-- Write this in your own words. -->
-
-## What I'd do with more time
-
-- Voice-to-transcript with diarization.
-- A reranker and a recency preference for "what's the current plan?" questions.
-- Link decisions across meetings when a later one supersedes an earlier one.
-- A labelled eval for extraction quality and a larger, noisier transcript set.
-- Speaker alias resolution ("Tom" vs "Thomas Becker" vs "SPEAKER_02").
